@@ -1,0 +1,267 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <script type="text/javascript" src="jquery.1.7.2.min.js"></script>
+    <script type="text/javascript" src="pubsub.js"></script>
+    <script type="text/javascript" src="http://maps.google.com/maps/api/js?v=3.6&amp;sensor=false"></script>
+ 
+    <script type='text/javascript'>
+        
+    $(document).ready(function() {
+
+        Interface.init();
+        Geocoder.init();
+        Map.init();
+
+        var locations = [
+            new Location('home', 'Home', 'Holly Springs, NC'),
+            new Location('tek', 'php|TEK', 'Chicago'),
+            new Location('disney', 'Disney World', 'Orlando')
+        ];
+        
+        for (var x=0; x < locations.length; x++) {
+            Map.addLocation(locations[x]);
+        }
+        
+        //Debug.disable(true);
+        
+    });
+    
+    /**
+     * Create the Location object
+     */
+    function Location(id, name, address) {
+        this.id = id;
+        this.name = name;
+        this.address = address;
+        this.latitude = null;
+        this.longitude = null;
+    }
+    Location.prototype.setLatLng = function(lat, lng) {
+        this.latitude = lat;
+        this.longitude = lng;
+    }
+    Location.prototype.toString = function() { 
+        return this.name + ' (' + this.address + ')';
+    }
+    
+    /**
+     * The Debug module will handle logging information to the console
+     */
+    var Debug = function() {
+        
+        var _logPrefix = '__DEBUG__: ';
+        var _disabled = false;
+        
+        // setup subscriptions to things we want to log
+        $.subscribe('Map.markerClick', function(id) {
+           log('Marker ID ' + id + ' was clicked'); 
+        });
+        
+        $.subscribe('Map.addMarker', function(loc) {
+            log('Location ' + loc.toString() + ' was added'); 
+        });
+            
+        function log (message, useAlert) {
+            
+            if (_disabled === true) {
+                return;
+            }
+            
+            var msg = _logPrefix + message + ' - ' + Date();
+            
+            if (useAlert == false || useAlert == undefined) {
+                console.log(msg);
+            } else {
+                alert(msg);
+            }
+        }
+        
+        function disable(status) {
+            _disabled = status;
+        }
+
+        return {
+            log: log,
+            disable: disable
+        }
+        
+    }();
+
+    
+    /**
+     * Deals with the user interface portions of the site (forms and such)
+     */
+    var Interface = function() {
+        
+        function init() {
+            
+            $('#addressForm').submit(function(e) {           
+
+                e.preventDefault();
+                
+                var _id      = $(this).find('#id').val();
+                var _name    = $(this).find('#name').val();
+                var _address = $(this).find('#address').val();
+                
+                var newLoc = new Location(_id, _name, _address);
+                
+                Map.addLocation(newLoc);
+            });
+        }
+        
+        return {
+            init: init  
+        };
+        
+    }();
+    
+    /**
+     * Handles all the map related stuff (initializing it, drawing things on it,
+     * moving to various locations, etc.)
+     */
+    var Map = function() {
+
+        var config = {};
+        var $map = null;
+        var markers = {};
+
+        function init(options) {
+
+            config = {
+                mapOptions: {
+                    mapTypeId: google.maps.MapTypeId.ROADMAP,
+                    zoom: 4,
+                    center: new google.maps.LatLng(34, -98)
+                }
+            };
+
+            $.extend(true, config, options);
+
+            $map = new google.maps.Map(document.getElementById('map'), config.mapOptions);
+        }        
+        
+        function addLocation(/* Location */ location) {
+            Geocoder.geocodeAddress(location.address, function(lat, lng) {
+                location.setLatLng(lat, lng);
+                _addMarker(location);
+            });
+        }
+        
+        /**
+         * Add the marker for the Location object provided
+         * 
+         * Publishes: 
+         *     - Map.markerClick
+         *     - Map.addMarker
+         */
+        function _addMarker(/* Location */ loc) {       
+
+            if (loc.latitude == false && loc.longitude == false) {
+                return;
+            }
+
+            var position = new google.maps.LatLng(loc.latitude, loc.longitude);
+
+            var marker = new google.maps.Marker({
+                position: position,
+                title: loc.name,
+                map: $map
+            });
+
+            google.maps.event.addListener(marker, 'click', function() {
+                $.publish('Map.markerClick', [loc.id]);
+            });
+
+            markers[loc.id] = marker;
+            
+            $.publish('Map.addMarker', [loc]);
+            
+            _zoomToFitMarkers();
+        }
+        
+        function _zoomToFitMarkers() {
+
+            var bounds = new google.maps.LatLngBounds();
+
+            var numMarkers = 0;
+            for (m in markers) {
+                numMarkers++;
+                bounds.extend(markers[m].position);
+            }
+            $map.setCenter(bounds.getCenter());
+            $map.fitBounds(bounds);
+
+            // if we only have one marker, zoom out some so that we kind
+            // of tell where we are
+            if (numMarkers == 1) {
+                $map.setZoom($map.getZoom() - 5);
+            }
+
+        }
+        
+        return {
+            init: init,
+            addLocation: addLocation
+        };
+    }();   
+       
+       
+    /**
+    * Handles all geocoding related tasks
+    *
+    * Publishes:
+    *     - Geocoder.gotLocation
+    */
+    var Geocoder = function() {
+
+        var $geocoder = null;
+
+        function init() {
+
+            $geocoder = new google.maps.Geocoder();
+        }
+
+        function geocodeAddress(address, callback) {
+
+            $geocoder.geocode({'address': address}, function(results, status) {
+
+                if (status == google.maps.GeocoderStatus.OK) {
+
+                    var lat = results[0].geometry.location.lat();
+                    var lng = results[0].geometry.location.lng();
+                    
+                    $.publish('Geocoder.gotLocation', [lat, lng]);
+
+                    callback(lat, lng);
+
+                } else {
+                    alert("Geocode was not successful for the following reason: " + status);
+                }
+            });
+        }
+
+        return {
+            init: init,
+            geocodeAddress: geocodeAddress
+        };
+
+    }();
+    
+    </script>
+
+</head>
+<body>
+    <form id="addressForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" />
+        <label for="id">ID:</label>
+        <input type="text" id="id" name="id" />
+        <label for="address">Address:</label>
+        <input type="text" id="address" name="address" />
+        <input type="submit" value="Add Location!" />
+    </form>
+    <div id="map" style="width: 650px; height: 500px;"></div>
+    
+</body></html>
