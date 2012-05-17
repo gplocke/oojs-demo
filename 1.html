@@ -1,0 +1,62 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <script type="text/javascript" src="jquery.1.7.2.min.js"></script>
+ 
+    <script type='text/javascript'>
+        
+    $(document).ready(function() {
+        
+        //Debug.setDisable(true);
+        //Debug.setUseAlert(true);
+    });
+    
+    /**
+     * The Debug module will handle logging information to the console
+     */
+    var Debug = function() {
+        
+        var _logPrefix = '__DEBUG__: ';
+        var _disabled = false;
+        var _useAlert = false;
+
+        function log(message) {
+            
+            if (_disabled === true) {
+                return;
+            }
+            
+            var msg = _logPrefix + message + ' - ' + Date();
+            
+            if (_useAlert === true) {
+                alert(msg);
+            } else {
+                console.log(msg);
+            }
+        }
+        
+        function setDisable(status) {
+            _disabled = status;
+        }
+        
+        function setUseAlert(status) {
+            _useAlert = status;
+        }
+
+        return {
+            log: log,
+            setDisable: setDisable,
+            setUseAlert: setUseAlert
+        }
+        
+    }();
+    
+    </script>
+
+</head>
+<body>
+    
+    
+</body>
+</html>

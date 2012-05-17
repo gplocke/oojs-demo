@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <script type="text/javascript" src="jquery.1.7.2.min.js"></script>
+ 
+    <script type='text/javascript'>
+        
+    $(document).ready(function() {
+
+        Interface.init();
+        
+        //Debug.setDisable(true);
+        //Debug.setUseAlert(true);
+    });
+    
+    /**
+     * The Debug module will handle logging information to the console
+     */
+    var Debug = function() {
+        
+        var _logPrefix = '__DEBUG__: ';
+        var _disabled = false;
+        var _useAlert = false;
+
+        function log(message) {
+            
+            if (_disabled === true) {
+                return;
+            }
+            
+            var msg = _logPrefix + message + ' - ' + Date();
+            
+            if (_useAlert === true) {
+                alert(msg);
+            } else {
+                console.log(msg);
+            }
+        }
+        
+        function setDisable(status) {
+            _disabled = status;
+        }
+        
+        function setUseAlert(status) {
+            _useAlert = status;
+        }
+
+        return {
+            log: log,
+            setDisable: setDisable,
+            setUseAlert: setUseAlert
+        }
+        
+    }();
+    
+    
+    /**
+     * Deals with the user interface portions of the site (forms and such)
+     */
+    var Interface = function() {
+        
+        var $locationList = null;
+        
+        function init() {
+            
+            $locationList = $('#locationList');
+            
+            $('#addressForm').submit(function(e) {           
+
+                e.preventDefault();
+                
+                var _id      = $(this).find('#id').val();
+                var _name    = $(this).find('#name').val();
+                var _address = $(this).find('#address').val();
+                
+                Debug.log(_id + ': ' + _name + ' (' + _address + ')');
+                _addLocationToList(_id, _name, _address);
+            });
+        }
+        
+        function _addLocationToList(id, name, address) {
+            
+            var $link = $('<a/>', {
+               'id'   : id,
+               'html' : name + ' (' + address + ')',
+               'css'  : {
+                   'display' : 'block',
+                   'border-bottom' : '1px solid #000',
+                   'padding' : '5px 0 5px 5px'
+               }
+            });
+            
+            $locationList.append($link);
+        }
+        
+        return {
+            init: init  
+        };
+        
+    }();
+    
+    </script>
+
+</head>
+<body>
+    <div style="width: 800px;">
+        <form id="addressForm" style="background-color: #EDEDED; padding: 5px;">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" />
+            <label for="id">ID:</label>
+            <input type="text" id="id" name="id" />
+            <label for="address">Address:</label>
+            <input type="text" id="address" name="address" />
+            <input type="submit" value="Add Location!" />
+        </form>
+        <div id="locationListWrapper" style="padding: 10px; float: left; width: 180px;">
+            <div style="text-align: center;"><b>Locations</b></div>
+            <div id="locationList"></div>
+        </div>
+    </div>
+    
+</body>
+</html>

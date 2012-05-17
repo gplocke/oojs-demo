@@ -57,7 +57,7 @@
         
         // setup subscriptions to things we want to log
         $.subscribe('Map.markerClick', function(/* Location */ loc) {
-           log('Marker ID ' + loc.id + ' was clicked'); 
+            log('Marker ID ' + loc.id + ' was clicked'); 
         });
         
         $.subscribe('Map.addMarker', function(/* Location */ loc) {
@@ -134,7 +134,7 @@
             
             var $link = $('<a/>', {
                'id'   : loc.id,
-               'html' : loc.name + ' (' + loc.address + ')<br /><small>(' + loc.latitude + ',' + loc.longitude + ')</small>',
+               'html' : loc.name + ' (' + loc.address + ')<br/><small>(' + loc.latitude + ', ' + loc.longitude + ')</small>',
                'css'  : {
                    'display' : 'block',
                    'border-bottom' : '1px solid #000',

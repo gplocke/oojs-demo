@@ -1,4 +1,4 @@
 oojs-demo
 =========
 
-Demo code for my OOJS talk at php|TEK 2012
+Demo code for my OOJS talk at php|tek 2012
