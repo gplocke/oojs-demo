@@ -16,6 +16,7 @@
         
         //Debug.setDisable(true);
         //Debug.setUseAlert(true);
+        //Debug.alert('This is a debug alert');
 
         var locations = [
             new Location('home', 'Home', 'Holly Springs, NC'),
@@ -101,11 +102,11 @@
      */
     var Interface = function() {
         
-        var $locationList = null;
+        var $_locationList = null;
         
         function init() {
             
-            $locationList = $('#locationList');
+            $_locationList = $('#locationList');
             
             $('#addressForm').submit(function(e) {           
 
@@ -142,12 +143,12 @@
                }
             });
             
-            $locationList.append($link);
+            $_locationList.append($link);
         }
         
         function _selectLocation(/* Location */ loc) {
-            $('a', $locationList).css('background-color', 'transparent');
-            $('#' + loc.id, $locationList).css('background-color', '#b7e4ff');
+            $('a', $_locationList).css('background-color', 'transparent');
+            $('#' + loc.id, $_locationList).css('background-color', '#b7e4ff');
         }
         
         return {

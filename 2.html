@@ -12,6 +12,7 @@
         
         //Debug.setDisable(true);
         //Debug.setUseAlert(true);
+        //Debug.alert('This is a debug alert');
     });
     
     /**
@@ -60,11 +61,11 @@
      */
     var Interface = function() {
         
-        var $locationList = null;
+        var $_locationList = null;
         
         function init() {
             
-            $locationList = $('#locationList');
+            $_locationList = $('#locationList');
             
             $('#addressForm').submit(function(e) {           
 
@@ -91,7 +92,7 @@
                }
             });
             
-            $locationList.append($link);
+            $_locationList.append($link);
         }
         
         return {
